@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ALFASAMO - Coleção de Natal</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            background: radial-gradient(circle, #1f2937, #111827);
+            touch-action: manipulation;
+        }
+
+        img {
+            -webkit-user-drag: none;
+            user-select: none;
+            pointer-events: none; 
+        }
+
+        #start-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: linear-gradient(135deg, #111827, #000000);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease-out;
+        }
+        
+        #btn-start {
+            pointer-events: auto;
+        }
+
+        .magazine-viewport {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .page {
+            background: linear-gradient(135deg, #8b0000, #4a0000);
+            box-shadow: inset 0 0 0 4px #d4af37, inset 0 0 15px rgba(0,0,0,0.8);
+            overflow: hidden;
+            box-sizing: border-box;
+            position: relative;
+            cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: pan-y; 
+        }
+        
+        .page::before {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px; right: 2px; bottom: 2px;
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .product-card {
+            background-color: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 10;
+        }
+
+        .img-container {
+            width: 100%;
+            height: 11rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            cursor: zoom-in; 
+            position: relative;
+            z-index: 30;
+        }
+
+        .product-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #fbbf24;
+            text-align: center;
+            line-height: 1.2;
+            margin-bottom: 0.25rem;
+            letter-spacing: 0.025em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .product-desc {
+            font-size: 0.75rem;
+            color: #e5e7eb;
+            text-align: center;
+            line-height: 1.3;
+            flex-grow: 1;
+            padding: 0 0.25rem;
+        }
+
+        .dim-text {
+            display: inline-block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(253, 230, 138, 0.9);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.5);
+            padding-bottom: 0.2rem;
+            margin-top: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dim-text1 {
+            display: inline-block;
+            font-size: 0.40rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(253, 230, 138, 0.9);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.5);
+            padding-bottom: 0.1rem;
+            margin-top: 0.25rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .price-badge {
+            position: relative;
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            align-items: center;
+            gap: 0.4rem;
+            z-index: 30;
+        }
+
+        .price-content {
+            position: relative;
+            background: linear-gradient(135deg, #5a0000, #300000);
+            border: 1px solid #fbbf24;
+            padding: 0.2rem 1.5rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 0.25rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+
+        .price-currency { font-size: 0.8rem; color: #fde68a; font-weight: 600; }
+        .price-value { font-size: 1.3rem; color: #fbbf24; font-weight: 900; }
+        .price-unit { font-size: 0.65rem; color: #fca5a5; font-weight: 400; margin-left: 0.2rem; }
+
+        .price-badge-group {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-top: auto;
+            z-index: 30;
+        }
+        
+        .price-badge-sm {
+            position: relative;
+            background: linear-gradient(135deg, #5a0000, #300000);
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            padding: 0.2rem 0.75rem;
+            border-radius: 9999px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .price-badge-sm.highlight { border: 1px solid #fbbf24; }
+        .price-badge-sm .label { font-size: 0.65rem; color: #fde68a; text-transform: uppercase; font-weight: 600; }
+        .price-value-sm { font-size: 1rem; color: #fbbf24; font-weight: 900; }
+
+        .glow-logo { filter: drop-shadow(0 0 25px rgba(255, 180, 0, 0.9)); }
+        
+        .snow {
+            position: absolute;
+            top: -10px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            pointer-events: none;
+            animation: fall linear infinite;
+        }
+        @keyframes fall { to { transform: translateY(500px); } }
+        
+        .animate-slide-left { animation: slideLeft 1.5s infinite; }
+        .animate-slide-right { animation: slideRight 1.5s infinite; }
+        @keyframes slideLeft { 0%, 100% { transform: translateX(0); opacity: 0.4; } 50% { transform: translateX(-5px); opacity: 1; } }
+        @keyframes slideRight { 0%, 100% { transform: translateX(0); opacity: 0.4; } 50% { transform: translateX(5px); opacity: 1; } }
+        
+        .stop-flip { 
+            pointer-events: auto !important; 
+            cursor: pointer; 
+        }
+
+        #cart-container::-webkit-scrollbar { width: 6px; }
+        #cart-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+        #cart-container::-webkit-scrollbar-thumb { background: #fbbf24; border-radius: 4px; }
+
+        /* Estilos do Zoom */
+        #zoom-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        #zoom-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #zoom-modal img {
+            max-width: 90%;
+            max-height: 90vh;
+            object-fit: contain;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(255, 180, 0, 0.2);
+        }
+        #zoom-modal.active img {
+            transform: scale(1);
+        }
+        #close-zoom {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10000;
+            background: none;
+            border: none;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop>
+        <source src="Mariah Carey - All I Want for Christmas Is You (Make My Wish Come True Edition) - MariahCareyVEVO.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="start-overlay">
+        <img src="Alfasamo-removebg-preview.png" alt="ALFASAMO" class="w-40 mb-8 glow-logo rounded-xl" onerror="this.src='https://via.placeholder.com/200x200/000000/ff8c00?text=ALFASAMO'">
+        <button id="btn-start" class="bg-gradient-to-r from-red-700 to-red-600 text-yellow-400 font-bold py-4 px-10 rounded-full shadow-[0_0_20px_rgba(255,180,0,0.5)] border-2 border-yellow-500 transition-transform transform hover:scale-105 flex items-center gap-3 text-lg animate-pulse">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+            Abrir Catálogo
+        </button>
+    </div>
+
+    <!-- Modal de Zoom -->
+    <div id="zoom-modal">
+        <button id="close-zoom">&times;</button>
+        <img id="zoom-image" src="" alt="Imagem Ampliada">
+    </div>
+
+    <div class="magazine-viewport">
+        <div id="magazine">
+            
+            <!-- Capa -->
+            <div class="page" id="cover-page">
+                <div class="absolute inset-0 flex flex-col items-center justify-center px-6 z-10 pointer-events-none">
+                    <img src="Alfasamo-removebg-preview.png" alt="ALFASAMO Logo" class="w-48 mx-auto mb-6 glow-logo" onerror="this.src='https://via.placeholder.com/200x200/000000/ff8c00?text=ALFASAMO'">
+                    <h1 class="text-3xl font-bold text-yellow-400 mb-2 filter drop-shadow-lg tracking-wide text-center">Coleção de Natal</h1>
+                    <p class="text-gray-100 text-sm font-light leading-relaxed text-center opacity-95 mb-6">Impressões 3D para a magia do seu Natal! Para fazer seu pedido, coloque os itens no carrinho. Na última pagina, confira o pedido e clique em "Enviar pedido".</p>
+                </div>
+                
+                <div class="absolute bottom-6 w-full z-20 pointer-events-none flex flex-col items-center">
+                    <span class="text-xs text-yellow-200 uppercase tracking-widest opacity-80 mb-2 font-semibold">Deslize ou toque nos cantos</span>
+                    <div class="flex gap-20 text-yellow-400">
+                        <svg class="w-6 h-6 animate-slide-left" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
+                        <svg class="w-6 h-6 animate-slide-right" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+             <!-- Produto 0 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Bolas para arvore de Natal personalizadas.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Enfeites Personalizados">
+                    </div>
+                    <h2 class="product-title">Enfeites personalizados para sua árvore</h2>
+                    <p class="product-desc">Para deixar sua árvore personalidada com o seu nome e de quem você ama.</p>
+                    <span class="dim-text">Dimensões aproximadas: 8cm (A) x 7cm (L)</span>
+                    <span class="dim-text1">Valor unitário: R$ 5,00</span>
+                    
+                    <div class="price-badge stop-flip">
+                       <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">20,00</span><span class="price-unit">/5 unidades</span>
+                       </div>
+                       <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Enfeites Personalizados (Kit 5un)" data-price="20.00">
+                           Adicionar ao Carrinho
+                       </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 1 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Petisqueiras grandes.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Petisqueira Pinheiro">
+                    </div>
+                    <h2 class="product-title">Petisqueira Pinheiro</h2>
+                    <p class="product-desc">Exclusividade e sofisticação. Surpreenda os seus convidados na ceia com esta peça temática.</p>
+                    <span class="dim-text">Dimensões aproximadas: 25cm (A) x 19cm (L)</span>
+                    
+                    <div class="price-badge stop-flip">
+                       <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">48,00</span><span class="price-unit">/cada</span>
+                       </div>
+                       <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Petisqueira Pinheiro" data-price="48.00">
+                           Adicionar ao Carrinho
+                       </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 2 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Vila de Natal.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Vila Iluminada">
+                    </div>
+                    <h2 class="product-title">Vila Iluminada</h2>
+                    <p class="product-desc">Crie uma atmosfera mágica. Conjunto composto por 1 capela e 4 charmosas residências.</p>
+                    <span class="dim-text">Dimensões variádas: 15cm (A) x 6cm (L) (Capela para referência de tamanho) </span>
+                    
+                    <div class="price-badge-group stop-flip">
+                        <div class="flex items-center gap-2">
+                            <div class="price-badge-sm w-full">
+                                <span class="label">Sem velas</span>
+                                <div><span class="price-currency">R$</span> <span class="price-value-sm text-yellow-500">100,00</span></div>
+                            </div>
+                            <button class="add-to-cart-btn bg-yellow-600 text-white font-bold py-1 px-3 rounded-full text-xs" data-name="Vila Iluminada (Sem velas)" data-price="100.00">+</button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="price-badge-sm highlight w-full">
+                                <span class="label text-yellow-400">Com velas</span>
+                                <div><span class="price-currency">R$</span> <span class="price-value-sm">110,00</span></div>
+                            </div>
+                            <button class="add-to-cart-btn bg-yellow-600 text-white font-bold py-1 px-3 rounded-full text-xs" data-name="Vila Iluminada (Com velas)" data-price="110.00">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 3 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Petisqueiras pequenas.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Petisqueiras Modulares">
+                    </div>
+                    <h2 class="product-title">Petisqueiras Modulares</h2>
+                    <p class="product-desc">Versatilidade e elegância. Design ideal para servir aperitivos e pequenas porções com requinte.</p>
+                    <span class="dim-text">Dimensões aproximadas: 14cm (A) x 10,5cm (L)</span>
+                    
+                    <div class="price-badge stop-flip">
+                        <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">15,00</span><span class="price-unit">/cada</span>
+                        </div>
+                        <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Petisq. Modulares" data-price="15.00">Adicionar ao Carrinho</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 4 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Porta guardanapos.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Porta Guardanapos">
+                    </div>
+                    <h2 class="product-title">Porta Guardanapos</h2>
+                    <p class="product-desc">O detalhe perfeito para a mesa posta. Formato clássico de árvore, unindo funcionalidade e beleza.</p>
+                    <span class="dim-text">Dimensões aproximadas: 11cm (A) x 13,5cm (L)</span>
+                    
+                    <div class="price-badge stop-flip">
+                        <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">18,00</span>
+                        </div>
+                        <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Porta Guardanapos" data-price="18.00">Adicionar ao Carrinho</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 5 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Presepio minimalista.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Presépio Minimalista">
+                    </div>
+                    <h2 class="product-title">Presépio Minimalista</h2>
+                    <p class="product-desc">A essência do Natal em design contemporâneo. Escultura em arco com a Sagrada Família.</p>
+                    <span class="dim-text">Dimensões aproximadas: 15cm (A) x 14cm (L)</span>
+                    
+                    <div class="price-badge stop-flip">
+                        <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">48,00</span>
+                        </div>
+                        <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Presépio Minimalista" data-price="48.00">Adicionar ao Carrinho</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 6 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Bomboniere papai noel.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Bomboniere Noel">
+                    </div>
+                    <h2 class="product-title">Bomboniere Noel</h2>
+                    <p class="product-desc">Um clássico repaginado. Recipiente temático ideal para bombons, doces finos ou presentes.</p>
+                    <span class="dim-text">Dimensões aproximadas: 10cm (A) x 12cm (L)</span>
+                    
+                    <div class="price-badge stop-flip">
+                        <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">45,00</span>
+                        </div>
+                        <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Bomboniere Noel" data-price="45.00">Adicionar ao Carrinho</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 7 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Anjo Iluminado.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Anjo de Luz">
+                    </div>
+                    <h2 class="product-title">Anjo de Luz</h2>
+                    <p class="product-desc">Iluminação suave e angelical. Peça decorativa com rica textura e compartimento para vela LED.</p>
+                    <span class="dim-text">Dimensões aproximadas: 15cm (A) x 10cm (L)</span>
+                    
+                    <div class="price-badge stop-flip">
+                        <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">25,00</span>
+                        </div>
+                        <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Anjo de Luz" data-price="25.00">Adicionar ao Carrinho</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 8 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Luminaria pinheiro.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Luminária Pinheiro">
+                    </div>
+                    <h2 class="product-title">Luminária Pinheiro</h2>
+                    <p class="product-desc">Aconchego para o ambiente. Design em formato de pinheiro com vazados para difusão de luz.</p>
+                    <span class="dim-text">Dimensões aproximadas: 15,5cm (A) x 10cm (L)</span>
+                    
+                    <div class="price-badge stop-flip">
+                        <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">35,00</span>
+                        </div>
+                        <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Luminária Pinheiro" data-price="35.00">Adicionar ao Carrinho</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 9 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Presepio iluminado.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Presépio Iluminado">
+                    </div>
+                    <h2 class="product-title">Presépio Iluminado</h2>
+                    <p class="product-desc">Uma obra de arte iluminada. Cenário rico em detalhes, preparado para receber iluminação.</p>
+                    <span class="dim-text">Dimensões aproximadas: 11,5cm (A) x 18,5cm (L)</span>
+                    
+                    <div class="price-badge stop-flip">
+                        <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">28,00</span>
+                        </div>
+                        <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Presépio Iluminado" data-price="28.00">Adicionar ao Carrinho</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 10 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Trenó bomboniere.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Trenó de Natal">
+                    </div>
+                    <h2 class="product-title">Trenó de Natal</h2>
+                    <p class="product-desc">O encanto das viagens do Pai Natal. Excelente para compor centros de mesa ou servir como porta-doces.</p>
+                    <span class="dim-text">Dimensões aproximadas: 10cm (A) x 15cm (L)</span>
+                    
+                    <div class="price-badge stop-flip">
+                        <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">35,00</span>
+                        </div>
+                        <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Trenó de Natal" data-price="35.00">Adicionar ao Carrinho</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 11 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Estrela para árvore de Natal.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Estrela Guia">
+                    </div>
+                    <h2 class="product-title">Estrela Guia</h2>
+                    <p class="product-desc">O ápice da sua decoração. Desenvolvida para coroar o topo da sua árvore com sofisticação.</p>
+                    <span class="dim-text">Dimensões: 16cm (A) x 16cm (L)</span>
+                    
+                    <div class="price-badge stop-flip">
+                        <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">20,00</span>
+                        </div>
+                        <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Estrela Guia" data-price="20.00">Adicionar ao Carrinho</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 12 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Coleção de bonecos.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Coleção Especial">
+                    </div>
+                    <h2 class="product-title">Coleção Especial</h2>
+                    <p class="product-desc">Composição festiva completa. Inclui 1 Pai Natal, 1 Rena, 1 Boneco de Neve, 1 Árvore e 1 Urso.</p>
+                    <span class="dim-text1">Papai Noel: 6,5cm (A) x 5cm (L) -> R$ 16,00</span>
+                    <span class="dim-text1">Boneco de neve (cada): 6,5cm (A) x 5cm (L) -> R$ 16,00</span>
+                    <span class="dim-text1">Rena (cada): 6,5cm (A) x 5cm (L) -> R$ 15,00</span>
+                    <span class="dim-text1">Urso polar (cada): 6,5cm (A) x 5cm (L) -> R$ 15,00</span>
+                    <span class="dim-text1">Árvore de natal (cada): 15cm (A) x 10cm (L) -> R$ 18,00</span>
+                        
+                    <div class="price-badge stop-flip">
+                        <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">70,00</span><span class="price-unit">/coleção completa</span>
+                        </div>
+                        <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Coleção Especial (Completa)" data-price="70.00">Adicionar ao Carrinho</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produto 13 -->
+            <div class="page p-3 flex flex-col relative">
+                <div class="product-card">
+                    <div class="img-container stop-flip">
+                        <img src="Arvore de Natal.jpeg" class="w-full h-full object-contain filter drop-shadow-md" alt="Árvore Decorativa">
+                    </div>
+                    <h2 class="product-title">Árvore Decorativa</h2>
+                    <p class="product-desc">Delicadeza e charme em miniatura. Perfeita para prateleiras, mesas e composições com requinte.</p>
+                    <span class="dim-text">Dimensões: 16cm (A) x 8cm (L)</span>
+                    
+                    <div class="price-badge stop-flip">
+                        <div class="price-content">
+                            <span class="price-currency">R$</span><span class="price-value">15,00</span>
+                        </div>
+                        <button class="add-to-cart-btn bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold py-1.5 px-4 rounded-full w-full transition-colors" data-name="Árvore Decorativa" data-price="15.00">Adicionar ao Carrinho</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contracapa (Resumo do Pedido) -->
+            <div class="page flex flex-col p-4 relative h-full">
+                <div class="z-10 flex flex-col h-full pointer-events-none w-full">
+                    <h2 class="text-xl font-bold mb-1 text-center text-yellow-400 drop-shadow-lg">Seu Pedido</h2>
+                    <p class="text-center text-xs text-gray-200 mb-3 leading-relaxed">Confira os itens selecionados</p>
+                    
+                    <!-- Container do Carrinho -->
+                    <div id="cart-container" class="flex-grow overflow-y-auto bg-black bg-opacity-40 rounded-lg p-3 mb-2 pointer-events-auto text-white text-xs border border-yellow-600/30">
+                        <p class="text-center text-gray-400 mt-10">O carrinho está vazio.</p>
+                    </div>
+                    
+                    <!-- Total e Botão de Checkout -->
+                    <div class="flex justify-between items-center mb-3 text-yellow-400 font-bold px-2 py-2 bg-black/60 rounded-lg border border-yellow-700/50">
+                        <span>Total:</span>
+                        <span id="cart-total" class="text-lg">R$ 0,00</span>
+                    </div>
+                    
+                    <button id="btn-checkout" class="stop-flip pointer-events-auto bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold py-3 px-4 rounded-full shadow-[0_0_15px_rgba(34,197,94,0.5)] border border-green-400 transition-transform transform hover:scale-105 flex items-center justify-center gap-2 relative z-50 w-full text-sm">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        Enviar Pedido
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const startOverlay = document.getElementById('start-overlay');
+            const btnStart = document.getElementById('btn-start');
+            const bgMusic = document.getElementById('bg-music');
+
+            // --- Bloqueio Absoluto de Virada de Página em Elementos Clicáveis ---
+            const stopEvent = (e) => {
+                e.stopPropagation();
+            };
+            
+            document.querySelectorAll('.stop-flip').forEach(el => {
+                el.addEventListener('pointerdown', stopEvent, { passive: false });
+                el.addEventListener('pointerup', stopEvent, { passive: false });
+                el.addEventListener('pointermove', stopEvent, { passive: false });
+                el.addEventListener('touchstart', stopEvent, { passive: false });
+                el.addEventListener('touchend', stopEvent, { passive: false });
+                el.addEventListener('mousedown', stopEvent, { passive: false });
+                el.addEventListener('mouseup', stopEvent, { passive: false });
+                el.addEventListener('click', stopEvent, { passive: false });
+            });
+
+
+            // --- Lógica de Zoom (Vanilla JS) ---
+            const zoomModal = document.getElementById('zoom-modal');
+            const zoomImg = document.getElementById('zoom-image');
+            const closeZoomBtn = document.getElementById('close-zoom');
+
+            document.querySelectorAll('.img-container').forEach(container => {
+                const openZoom = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation(); 
+                    const img = container.querySelector('img');
+                    if (img) {
+                        zoomImg.src = img.src;
+                        zoomModal.classList.add('active');
+                    }
+                };
+
+                container.addEventListener('click', openZoom);
+                container.addEventListener('touchend', openZoom); 
+            });
+
+            const closeZoom = (e) => {
+                if (e) e.stopPropagation();
+                zoomModal.classList.remove('active');
+            };
+
+            zoomModal.addEventListener('click', closeZoom);
+            zoomModal.addEventListener('touchend', closeZoom);
+            closeZoomBtn.addEventListener('click', closeZoom);
+            closeZoomBtn.addEventListener('touchend', closeZoom);
+            
+            zoomImg.addEventListener('click', (e) => e.stopPropagation()); 
+            zoomImg.addEventListener('touchend', (e) => e.stopPropagation()); 
+
+
+            // --- Lógica do Carrinho de Compras com Exclusão ---
+            let cart = [];
+            
+            function updateCartUI() {
+                const container = document.getElementById('cart-container');
+                const totalEl = document.getElementById('cart-total');
+
+                if (cart.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-400 mt-10">O carrinho está vazio.</p>';
+                    totalEl.textContent = 'R$ 0,00';
+                    return;
+                }
+
+                const itemCounts = {};
+                let total = 0;
+                
+                cart.forEach(item => {
+                    if (itemCounts[item.name]) {
+                        itemCounts[item.name].qtd += 1;
+                        itemCounts[item.name].subtotal += item.price;
+                    } else {
+                        itemCounts[item.name] = { price: item.price, qtd: 1, subtotal: item.price };
+                    }
+                    total += item.price;
+                });
+
+                let html = '<ul class="space-y-3">';
+                for (const [name, data] of Object.entries(itemCounts)) {
+                    html += `
+                        <li class="flex justify-between items-center border-b border-gray-600/50 pb-2">
+                            <div class="flex flex-col pr-2">
+                                <span class="text-yellow-100"><b class="text-yellow-400">${data.qtd}x</b> ${name}</span>
+                                <span class="text-gray-400 text-[10px]">R$ ${data.subtotal.toFixed(2).replace('.', ',')}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                                <button class="remove-one-btn stop-flip bg-red-600/80 hover:bg-red-600 text-white font-bold px-2 py-0.5 rounded text-xs transition-colors" data-name="${name}" title="Remover uma unidade">-</button>
+                                <button class="remove-all-btn stop-flip text-red-400 hover:text-red-300 text-xs font-semibold ml-0.5" data-name="${name}" title="Remover item">&times; Excluir</button>
+                            </div>
+                        </li>`;
+                }
+                html += '</ul>';
+
+                container.innerHTML = html;
+                totalEl.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+
+                attachCartActionEvents();
+            }
+
+            function removeFromCart(itemName, removeAll = false) {
+                if (removeAll) {
+                    cart = cart.filter(item => item.name !== itemName);
+                } else {
+                    const index = cart.findIndex(item => item.name === itemName);
+                    if (index !== -1) {
+                        cart.splice(index, 1);
+                    }
+                }
+                updateCartUI();
+            }
+
+            function attachCartActionEvents() {
+                document.querySelectorAll('.remove-one-btn').forEach(btn => {
+                    const handler = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const name = btn.getAttribute('data-name');
+                        removeFromCart(name, false);
+                    };
+                    btn.onclick = handler;
+                    btn.ontouchend = handler;
+                    btn.onpointerdown = (e) => e.stopPropagation();
+                });
+
+                document.querySelectorAll('.remove-all-btn').forEach(btn => {
+                    const handler = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const name = btn.getAttribute('data-name');
+                        removeFromCart(name, true);
+                    };
+                    btn.onclick = handler;
+                    btn.ontouchend = handler;
+                    btn.onpointerdown = (e) => e.stopPropagation();
+                });
+            }
+
+            document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+                const addToCart = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation(); 
+                    
+                    const name = btn.getAttribute('data-name');
+                    const price = parseFloat(btn.getAttribute('data-price'));
+                    
+                    cart.push({ name, price });
+                    updateCartUI();
+                    
+                    const originalText = btn.innerText;
+                    btn.innerText = 'Adicionado! ✓';
+                    btn.classList.replace('bg-yellow-600', 'bg-green-600');
+                    
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.classList.replace('bg-green-600', 'bg-yellow-600');
+                    }, 1200);
+                };
+
+                btn.addEventListener('click', addToCart);
+                btn.addEventListener('touchend', addToCart);
+            });
+
+            // Envio para o WhatsApp
+            const btnCheckout = document.getElementById('btn-checkout');
+            const handleCheckout = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (cart.length === 0) {
+                    alert('Seu carrinho está vazio! Adicione itens antes de enviar o pedido.');
+                    return;
+                }
+
+                const itemCounts = {};
+                let total = 0;
+                cart.forEach(item => {
+                    if (itemCounts[item.name]) {
+                        itemCounts[item.name].qtd += 1;
+                    } else {
+                        itemCounts[item.name] = { price: item.price, qtd: 1 };
+                    }
+                });
+
+                let text = "Olá, gostaria de fazer o seguinte pedido da *Coleção de Natal ALFASAMO*:\n\n";
+                for (const [name, data] of Object.entries(itemCounts)) {
+                    let sub = data.qtd * data.price;
+                    text += `- ${data.qtd}x ${name} (R$ ${sub.toFixed(2).replace('.', ',')})\n`;
+                    total += sub;
+                }
+                text += `\n*Total do Pedido: R$ ${total.toFixed(2).replace('.', ',')}*`;
+
+                const encoded = encodeURIComponent(text);
+                window.open(`https://api.whatsapp.com/send?phone=5538988156206&text=${encoded}`, '_blank');
+            };
+
+            btnCheckout.addEventListener('click', handleCheckout);
+            btnCheckout.addEventListener('touchend', handleCheckout);
+            // -------------------------------------
+
+            const pageFlip = new St.PageFlip(document.getElementById('magazine'), {
+                width: 320,
+                height: 480,
+                size: "fixed",
+                minWidth: 320,
+                maxWidth: 320,
+                minHeight: 480,
+                maxHeight: 480,
+                showCover: false,
+                mobileScrollSupport: true,
+                usePortrait: true,
+                flippingTime: 600,
+                maxShadowOpacity: 0.4, 
+                swipeDistance: 30
+            });
+
+            pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+
+            btnStart.addEventListener('click', function() {
+                bgMusic.play().catch(error => console.log("O navegador bloqueou o áudio:", error));
+                startOverlay.style.opacity = '0';
+                setTimeout(() => { startOverlay.style.display = 'none'; }, 800);
+            });
+
+            const magazine = document.getElementById('magazine');
+            let startX = 0;
+            let startY = 0;
+            let isDragging = false;
+
+            magazine.addEventListener('pointerdown', (e) => {
+                startX = e.clientX;
+                startY = e.clientY;
+                isDragging = false;
+            }, true);
+
+            magazine.addEventListener('pointermove', (e) => {
+                if (Math.abs(e.clientX - startX) > 25 || Math.abs(e.clientY - startY) > 25) {
+                    isDragging = true; 
+                }
+            }, true);
+
+            const isStrictCorner = (e) => {
+                const rect = magazine.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+                
+                const isLeftEdge = clickX < rect.width * 0.06;
+                const isRightEdge = clickX > rect.width * 0.94;
+                const isTopEdge = clickY < rect.height * 0.06;
+                const isBottomEdge = clickY > rect.height * 0.94;
+                
+                return (isLeftEdge || isRightEdge) && (isTopEdge || isBottomEdge);
+            };
+
+            magazine.addEventListener('pointerup', (e) => {
+                if (e.target.closest('.stop-flip')) return;
+                
+                if (!isDragging && !isStrictCorner(e)) {
+                    e.stopPropagation();
+                    const cancelEvent = new PointerEvent('pointercancel', {
+                        bubbles: true, cancelable: true,
+                        clientX: e.clientX, clientY: e.clientY
+                    });
+                    e.target.dispatchEvent(cancelEvent);
+                }
+            }, true);
+
+            magazine.addEventListener('click', (e) => {
+                if (e.target.closest('.stop-flip')) return;
+                if (!isDragging && !isStrictCorner(e)) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                }
+            }, true);
+
+            const cover = document.getElementById('cover-page');
+            if (cover) {
+                for (let i = 0; i < 45; i++) {
+                    const snow = document.createElement('div');
+                    snow.className = 'snow';
+                    snow.style.left = Math.random() * 100 + '%';
+                    snow.style.width = Math.random() * 3 + 2 + 'px'; 
+                    snow.style.height = snow.style.width;
+                    snow.style.animationDuration = Math.random() * 4 + 2 + 's';
+                    snow.style.animationDelay = Math.random() * 2 + 's';
+                    cover.appendChild(snow);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
